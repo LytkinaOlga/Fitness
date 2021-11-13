@@ -36,3 +36,4 @@ application.properties
 .mvn/*
 mvnw
 mvnw.cmd
+fitness-app.log

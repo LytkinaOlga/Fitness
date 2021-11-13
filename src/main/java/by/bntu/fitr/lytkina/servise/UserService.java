@@ -1,35 +1,45 @@
 package by.bntu.fitr.lytkina.servise;
 
-import by.bntu.fitr.lytkina.model.Sex;
+import by.bntu.fitr.lytkina.dto.UserDTO;
+import by.bntu.fitr.lytkina.exceptions.UserWasNotCreatedException;
 import by.bntu.fitr.lytkina.model.User;
+import by.bntu.fitr.lytkina.repo.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 @Service
 public class UserService {
-    public User create(User user) {
-        Calendar currentDate = new GregorianCalendar();
-        User newUser = new User(user.getFirstname(),
-                user.getLastname(),
-                user.getDateOfBirth(),
-                user.getEmail(),
-                currentDate,
-                user.getSex(),
-                user.getPhoneNumber());
-        return newUser;
+    private final UserRepository userRepository;
+
+    private final Logger logger = LoggerFactory.getLogger(UserService.class);
+
+    @Autowired
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
-    public User getOneUser() {
-        Calendar dateOfBirth = new GregorianCalendar(2000, 5, 21);
-        Calendar currentDate = new GregorianCalendar();
-        return new User("Olya",
-                "Lytkina",
-                dateOfBirth,
-                "ollytkina@icloud.com",
-                currentDate,
-                Sex.FEMALE,
-                "(29)2617300"
-        );
+    public User create(UserDTO userDTO
+    ) {
+        try {
+            Calendar currentDate = new GregorianCalendar();
+            User newUser = new User(userDTO.getFirstname(),
+                    userDTO.getLastname(),
+                    userDTO.getDateOfBirth(),
+                    userDTO.getEmail(),
+                    currentDate,
+                    userDTO.getSex(),
+                    userDTO.getPhoneNumber());
+            userRepository.save(newUser);
+            logger.info("New USER is created: name - {}, register date - {}", newUser.getFirstname() + " " + newUser.getLastname(), currentDate.getTime());
+            return newUser;
+        } catch (Exception e){
+            logger.error(e.getMessage());
+            throw new UserWasNotCreatedException(userDTO.getFirstname() + userDTO.getLastname());
+        }
     }
 }
